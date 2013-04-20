@@ -1,0 +1,5 @@
+#Backup files
+*~
+
+#Binary python files
+*.pyc
