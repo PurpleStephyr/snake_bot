@@ -23,6 +23,7 @@ import snake
 from dot import Dot
 
 PIXELS_PER_SQUARE = 12
+KEYBOARD = False
 
 class SnakeWindow(QtGui.QWidget):
     def __init__(self):
@@ -50,18 +51,19 @@ class SnakeWindow(QtGui.QWidget):
         self.startButton.show()
 
     def keyPressEvent(self, keyEvent):
-        if(self.snake != None and keyEvent.type() == QtCore.QEvent.KeyPress):
-            self.snake.setDirection( {
-                    QtCore.Qt.Key_Up : snake.Direction.Up,
-                    QtCore.Qt.Key_Down : snake.Direction.Down,
-                    QtCore.Qt.Key_Left : snake.Direction.Left,
-                    QtCore.Qt.Key_Right : snake.Direction.Right }.get(keyEvent.key(), None) )
+        if(KEYBOARD == True):
+            if(self.snake != None and keyEvent.type() == QtCore.QEvent.KeyPress):
+                self.snake.setDirection( {
+                        QtCore.Qt.Key_Up : snake.Direction.Up,
+                        QtCore.Qt.Key_Down : snake.Direction.Down,
+                        QtCore.Qt.Key_Left : snake.Direction.Left,
+                        QtCore.Qt.Key_Right : snake.Direction.Right }.get(keyEvent.key(), None) )
 
     def createDot(self):
         unoccupiedSpaces = []
         for x in range(0, self.size[0]):
             for y in range(0, self.size[1]):
-                if(not self.snake.occupiesPosition((x,y))):
+                if(self.snake.validPosition((x,y))):
                     unoccupiedSpaces.append((x,y))
 
         if(self.dot != None):

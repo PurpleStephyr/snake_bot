@@ -18,6 +18,7 @@ from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 from collections import deque
+import random
 
 import window
 from dot import Dot
@@ -27,6 +28,11 @@ class Direction:
     Down = (0,1)
     Left = (-1,0)
     Right = (1,0)
+    List = [Up, Down, Left, Right]
+
+
+def addDirections(d1, d2):
+    return (d1[0] + d2[0], d1[1] + d2[1])
 
 class Snake(QtCore.QObject):
     def __init__(self, snakeWindow):
@@ -45,20 +51,21 @@ class Snake(QtCore.QObject):
         for node in self.nodes:
             node.deleteLater()
 
-    def occupiesPosition(self, position):
-        for node in self.nodes:
-            if(node.position == position):
-                return True
-        return False
-
-    def move(self):
-        position = (self.nodes[0].position[0] + self.direction[0],
-                    self.nodes[0].position[1] + self.direction[1])
+    def validPosition(self, position):
         if(position[0] > self.window.size[0] or
            position[1] > self.window.size[1] or
            position[0] < 0 or
-           position[1] < 0 or
-           self.occupiesPosition(position)):
+           position[1] < 0):
+            return False
+
+        for node in self.nodes:
+            if(node.position == position):
+                return False
+        return True
+
+    def move(self):
+        position = addDirections(self.nodes[0].position, self.direction)
+        if(not self.validPosition(position)):
             self.window.killSnake()
         else:
             if(position == self.window.dot.position):
@@ -68,6 +75,29 @@ class Snake(QtCore.QObject):
             if(len(self.nodes) > self.length):
                 self.nodes.pop().deleteLater()
 
+        if(window.KEYBOARD == False):
+            self.computeNextDirection()
+
     def setDirection(self, direction):
-        if(direction != None):
+        if(direction == Direction.Up or
+           direction == Direction.Down or
+           direction == Direction.Left or
+           direction == Direction.Right):
             self.direction = direction
+
+    def computeNextDirection(self):
+        validDirections = []
+        for direction in Direction.List:
+            if(self.validPosition(addDirections(self.nodes[0].position, direction))):
+                validDirections.append(direction)
+
+        minDistance = float("inf")
+        shortestDirection = None
+        for direction in validDirections:
+            position = addDirections(self.nodes[0].position, direction)
+            distance = abs(position[0] - self.window.dot.position[0]) + \
+                abs(position[1] - self.window.dot.position[1])
+            if(distance < minDistance):
+                minDistance = distance
+                shortestDirection = direction
+        self.setDirection(shortestDirection)
