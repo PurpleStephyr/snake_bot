@@ -44,24 +44,31 @@ class Snake(QtCore.QObject):
         self.timer.timeout.connect(self.move)
         self.timer.start(200)
 
+        self.occupiedSpaces = [[False for j in xrange(0, self.window.size[1])]
+                               for i in xrange(0, self.window.size[1])]
         self.nodes = deque()
         self.nodes.appendleft(Dot(self.window, (self.window.size[0]/2, self.window.size[1]/2)))
+
+        self.occupiedSpaces[self.nodes[0].position[0]][self.nodes[0].position[1]] = True
+
+        for x in xrange(len(self.occupiedSpaces)):
+            for y in xrange(len(self.occupiedSpaces[0])):
+                if(self.occupiedSpaces[x][y]):
+                    print(x,y)
+                
 
     def __del__(self):
         for node in self.nodes:
             node.deleteLater()
 
     def validPosition(self, position):
-        if(position[0] > self.window.size[0] or
-           position[1] > self.window.size[1] or
+        if(position[0] >= self.window.size[0] or
+           position[1] >= self.window.size[1] or
            position[0] < 0 or
            position[1] < 0):
             return False
 
-        for node in self.nodes:
-            if(node.position == position):
-                return False
-        return True
+        return not self.occupiedSpaces[position[0]][position[1]]
 
     def move(self):
         position = addDirections(self.nodes[0].position, self.direction)
@@ -71,9 +78,14 @@ class Snake(QtCore.QObject):
             if(position == self.window.dot.position):
                 self.length += 1
                 self.window.createDot()
+
             self.nodes.appendleft(Dot(self.window, position))
+            self.occupiedSpaces[self.nodes[0].position[0]][self.nodes[0].position[1]] = True
+
             if(len(self.nodes) > self.length):
-                self.nodes.pop().deleteLater()
+                lastNode = self.nodes.pop()
+                self.occupiedSpaces[lastNode.position[0]][lastNode.position[1]] = False
+                lastNode.deleteLater()
 
         if(window.KEYBOARD == False):
             self.computeNextDirection()
